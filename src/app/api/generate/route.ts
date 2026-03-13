@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { RECEIPT_SYSTEM_PROMPT, EXTRACT_SUFFIX } from "@/lib/prompts";
+import { RECEIPT_SYSTEM_PROMPT, GENERATE_SUFFIX } from "@/lib/prompts";
 
 export async function POST(request: NextRequest) {
   try {
-    const { image, mediaType } = await request.json();
+    const { description } = await request.json();
 
-    if (!image) {
-      return NextResponse.json({ error: "No image provided" }, { status: 400 });
+    if (!description || !description.trim()) {
+      return NextResponse.json(
+        { error: "Description is required" },
+        { status: 400 }
+      );
     }
 
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -29,22 +32,11 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: "system",
-            content: RECEIPT_SYSTEM_PROMPT + EXTRACT_SUFFIX,
+            content: RECEIPT_SYSTEM_PROMPT + GENERATE_SUFFIX,
           },
           {
             role: "user",
-            content: [
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:${mediaType || "image/jpeg"};base64,${image}`,
-                },
-              },
-              {
-                type: "text",
-                text: "Extract this receipt. Return the complete JSON template.",
-              },
-            ],
+            content: `Generate a receipt template from this description:\n\n"${description.trim()}"`,
           },
         ],
       }),
@@ -74,12 +66,12 @@ export async function POST(request: NextRequest) {
       rawText = rawText.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
     }
 
-    const receiptData = JSON.parse(rawText);
-    return NextResponse.json({ receipt: receiptData });
+    const receipt = JSON.parse(rawText);
+    return NextResponse.json({ receipt });
   } catch (error) {
-    console.error("Extract error:", error);
+    console.error("Generate error:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to extract receipt";
+      error instanceof Error ? error.message : "Failed to generate receipt";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
