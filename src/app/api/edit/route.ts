@@ -8,8 +8,11 @@ Rules:
 - Leave all other fields exactly as they are.
 - If items or prices change, recalculate subtotal, tax, and total automatically.
 - Maintain all existing section types and section order.
-- Every price value should be a string number like "6.70", not including the currency symbol.
-- Preserve the exact JSON structure — same keys, same nesting.`;
+- For items_list items, price values should be numeric strings like "6.70" without currency symbol (currency is auto-applied from settings). For totalLines and total values, include the full formatted value with currency symbol.
+- Preserve the exact JSON structure — same keys, same nesting.
+- When adding new sections, use appropriate section types: store_info for key-value pairs, items_list for products, custom_message for free text, barcode for barcodes, payment for payment details.
+- Every section must have a unique "id" field.
+- Always set lineHeight on new sections (1 for tight, 1.1 for relaxed).`;
 
 export async function POST(request: NextRequest) {
   try {

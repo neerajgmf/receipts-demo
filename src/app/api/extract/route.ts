@@ -302,21 +302,79 @@ Fields:
 
 ---
 
+## Common Receipt Layout Patterns
+
+### Fast Food (Five Guys, Taco Bell, Burger King)
+1. header — logo + store address + phone
+2. store_info — date/time, order ID, employee
+3. custom_message — order number (large, bold, centered)
+4. items_list (2col) — items with sub-items + showTotals (subtotal, tax, total)
+5. payment — card or cash details
+6. custom_message — "--> Order Closed <--"
+7. custom_message — footer messages, survey URL
+
+### Sit-Down Restaurant (Andale, Mirage)
+1. header — logo + restaurant name + address
+2. custom_message — order type "Take Out" / "Dine In"
+3. store_info — server, check#, date/time
+4. items_list (2col) — food items + sub-items + totals
+5. payment — cash/card
+
+### Retail/Luxury (MCM, Gucci, Louis Vuitton, Canada Goose)
+1. logo — brand logo standalone
+2. custom_message — "RECEIPT"
+3. business_info — store name + address
+4. store_info — transaction details, date, terminal, employee, customer info
+5. items_list (3col or 4col) with showColumnHeaders — products with qty, price, total columns
+6. store_info or items_list showTotals — unit price, tax, total breakdown
+7. store_info — card number, payment info
+8. custom_message — dashed separators, website, hashtags
+9. barcode — receipt barcode
+
+### Hotel Folio (Hampton Inn, Sheraton, Drury)
+1. header — hotel logo + name + address
+2. store_info — guest name, room, dates, folio#
+3. items_list (4col) — charges with date, description, amount columns
+4. items_list or store_info — totals
+5. payment — payment method
+6. custom_message — thank you message
+
+### Grocery (Walmart, Kroger, Save-A-Lot)
+1. header — store logo + address + phone
+2. store_info — store#, register, cashier, date/time
+3. items_list (2col) — items with tax flags (F, AF), quantity breakdowns
+4. items_list totals — subtotal, tax, balance due with increaseTotalSize
+5. payment — cash/card + change
+6. store_info — terminal info, transaction codes
+7. barcode — receipt barcode
+8. custom_message — return policy, survey
+
+### Gas Station (Shell, Chevron, BP)
+1. header — station logo + address
+2. store_info — pump#, date/time
+3. items_list (2col) — fuel type, gallons, price/gallon
+4. store_info or three_column — totals
+5. payment — card details
+6. store_info — transaction/authorization codes
+
+---
+
 ## Critical Rules
 
 1. Always set lineHeight on every section — default is too loose for receipts
 2. Use merchantcopy font as default for thermal receipts
 3. Use helvetica for modern/clean receipts, A4 documents, hotel folios
 4. Include fontSize in settings — always specify explicitly
-5. Use payment section for payment — NOT store_info
+5. Use payment section for payment — NOT store_info. Payment section gives users switchable Cash/Card UI
 6. Use items_list for purchased items — NOT custom_message or store_info
-7. Sub-items get isSubItem: true
+7. Sub-items get isSubItem: true — indented modifiers like toppings, customizations, SKU codes
 8. Add blank spacer { "name": "", "price": "", "isDescription": true } after the last item group before totals
 9. Negative marginTop (-7 to -10) to pull sections closer together
 10. Split footer text into separate custom_message sections when parts need different fontSize/alignment/bold
-11. Every section needs a unique id
-12. Currency in prices: For items_list, only put the numeric value — the currency is auto-applied from settings. For totalLines and total, include the full formatted value
-13. Match the original receipt exactly — replicate spacing, alignment, divider styles, and content placement as closely as possible
+11. Every section needs a unique id — use format "sectiontype-templateabbrev" (e.g., "header-fg", "items-andale")
+12. Currency in prices: For items_list, only put the numeric value (e.g., "6.99" not "$6.99") — the currency is auto-applied from settings. For totalLines and total, include the full formatted value (e.g., "$6.99")
+13. For A4 pdfSize: items_list 4col uses proportional flex widths automatically
+14. Match the original receipt exactly — replicate spacing, alignment, divider styles, and content placement as closely as possible
 
 ---
 

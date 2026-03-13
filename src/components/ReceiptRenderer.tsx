@@ -44,23 +44,23 @@ function Divider({ config }: { config?: DividerConfig }) {
     case "---":
       return (
         <div
-          className="my-1 border-t border-dashed border-gray-500"
-          style={{ borderColor: "#888" }}
+          className="my-1 overflow-hidden"
+          style={{ borderTop: "1px dashed #888" }}
         />
       );
     case "solid":
       return (
         <div
-          className="my-1 border-t border-solid"
-          style={{ borderColor: "#888" }}
+          className="my-1"
+          style={{ borderTop: "1px solid #888" }}
         />
       );
     case "double":
     case "===":
       return (
         <div className="my-1">
-          <div className="border-t border-solid" style={{ borderColor: "#888" }} />
-          <div className="mt-px border-t border-solid" style={{ borderColor: "#888" }} />
+          <div style={{ borderTop: "1px solid #888" }} />
+          <div className="mt-px" style={{ borderTop: "1px solid #888" }} />
         </div>
       );
     case "***":
@@ -209,9 +209,9 @@ function StoreInfoBlock({ section }: { section: StoreInfoSection }) {
     <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
       <div>
         {section.rows.map((row, i) => (
-          <div key={i} className={`flex justify-between text-xs ${section.bold ? "font-bold" : ""}`}>
-            <span className={getAlignClass(section.keyAlignment)}>{row.key}</span>
-            <span className={getAlignClass(section.valueAlignment)}>{row.value}</span>
+          <div key={i} className={`flex justify-between gap-2 ${section.bold ? "font-bold" : ""}`}>
+            <span className={`shrink-0 ${getAlignClass(section.keyAlignment)}`}>{row.key}</span>
+            <span className={`text-right ${getAlignClass(section.valueAlignment)}`}>{row.value}</span>
           </div>
         ))}
         <Divider config={section.divider} />
@@ -236,23 +236,62 @@ function ItemsListBlock({
         <Divider config={section.divider} />
 
         {section.showColumnHeaders && section.columnLabels && (
-          <div className={`flex justify-between text-xs ${section.headerBold ? "font-bold" : ""}`}>
-            <span className="flex-1">{section.columnLabels.name ?? "Item"}</span>
-            {(format === "3col" || format === "4col") && (
-              <span className="w-10 text-center">{section.columnLabels.quantity ?? "Qty"}</span>
+          <>
+            {format === "4col" ? (
+              <div className={`flex ${section.headerBold ? "font-bold" : ""}`}>
+                <span className="flex-[3] text-left">{section.columnLabels.name ?? "Item"}</span>
+                <span className="w-8 text-center">{section.columnLabels.quantity ?? "Qty"}</span>
+                <span className="w-[72px] text-right">{section.columnLabels.unitPrice ?? "Price"}</span>
+                <span className="w-[60px] text-right">{section.columnLabels.price ?? "Total"}</span>
+              </div>
+            ) : format === "3col" ? (
+              <div className={`flex ${section.headerBold ? "font-bold" : ""}`}>
+                <span className="flex-[3] text-left">{section.columnLabels.name ?? "Item"}</span>
+                <span className="w-8 text-center">{section.columnLabels.quantity ?? "Qty"}</span>
+                <span className="w-[72px] text-right">{section.columnLabels.price ?? "Total"}</span>
+              </div>
+            ) : (
+              <div className={`flex justify-between ${section.headerBold ? "font-bold" : ""}`}>
+                <span className="flex-1 text-left">{section.columnLabels.name ?? "Item"}</span>
+                <span className="w-[72px] text-right">{section.columnLabels.price ?? "Total"}</span>
+              </div>
             )}
-            {format === "4col" && (
-              <span className="w-16 text-right">{section.columnLabels.unitPrice ?? "Price"}</span>
-            )}
-            <span className="w-16 text-right">{section.columnLabels.price ?? "Total"}</span>
-          </div>
+            <div style={{ borderTop: "1px dashed #888" }} className="my-1" />
+          </>
         )}
 
         {section.items.map((item, i) => {
           if (item.isDescription) {
             return (
-              <div key={i} className="text-xs">
+              <div key={i}>
                 {item.name || "\u00A0"}
+              </div>
+            );
+          }
+
+          if (format === "4col") {
+            return (
+              <div key={i} className={`flex ${item.isSubItem ? "pl-4" : ""}`}>
+                <span className="flex-[3] mr-1">{item.name}</span>
+                <span className="w-8 text-center">{item.quantity ?? ""}</span>
+                <span className="w-[72px] text-right">
+                  {item.unitPrice ? `${currPrefix}${item.unitPrice}` : ""}
+                </span>
+                <span className="w-[60px] text-right whitespace-nowrap">
+                  {item.price ? `${currPrefix}${item.price}` : ""}
+                </span>
+              </div>
+            );
+          }
+
+          if (format === "3col") {
+            return (
+              <div key={i} className={`flex ${item.isSubItem ? "pl-4" : ""}`}>
+                <span className="flex-[3] mr-1">{item.name}</span>
+                <span className="w-8 text-center">{item.quantity ?? ""}</span>
+                <span className="w-[72px] text-right whitespace-nowrap">
+                  {item.price ? `${currPrefix}${item.price}` : ""}
+                </span>
               </div>
             );
           }
@@ -260,18 +299,10 @@ function ItemsListBlock({
           return (
             <div
               key={i}
-              className={`flex justify-between text-xs ${item.isSubItem ? "pl-4" : ""}`}
+              className={`flex justify-between ${item.isSubItem ? "pl-4" : ""}`}
             >
               <span className="flex-1 mr-2">{item.name}</span>
-              {(format === "3col" || format === "4col") && (
-                <span className="w-10 text-center">{item.quantity ?? ""}</span>
-              )}
-              {format === "4col" && (
-                <span className="w-16 text-right">
-                  {item.unitPrice ? `${currPrefix}${item.unitPrice}` : ""}
-                </span>
-              )}
-              <span className="w-16 text-right whitespace-nowrap">
+              <span className="w-[72px] text-right whitespace-nowrap">
                 {item.price ? `${currPrefix}${item.price}` : ""}
               </span>
             </div>
@@ -284,21 +315,21 @@ function ItemsListBlock({
               <Divider config={section.totalLinesDivider as DividerConfig} />
             )}
             {section.totalLines?.map((line, i) => (
-              <div key={i} className="flex justify-between text-xs">
-                <span>{line.title}</span>
+              <div key={i} className="flex justify-between">
+                <span className={getAlignClass(section.totalsKeyAlignment)}>{line.title}</span>
                 <span>{line.value}</span>
               </div>
             ))}
             {section.total && (
               <div
-                className="flex justify-between text-xs font-bold"
+                className="flex justify-between font-bold"
                 style={
                   section.increaseTotalSize?.enabled
-                    ? { fontSize: 16 }
+                    ? { fontSize: "1.2em" }
                     : undefined
                 }
               >
-                <span>{section.total.title}</span>
+                <span className={getAlignClass(section.totalKeyAlignment)}>{section.total.title}</span>
                 <span>{section.total.value}</span>
               </div>
             )}
@@ -326,7 +357,7 @@ function PaymentBlock({
     <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
       <div>
         {section.cardDetails && (
-          <div className="text-xs">
+          <div>
             <div className="flex justify-between">
               <span>{section.cardDetails.cardType}</span>
               <span>{section.cardDetails.cardNumber}</span>
@@ -338,7 +369,7 @@ function PaymentBlock({
           return (
             <div
               key={i}
-              className={`flex justify-between text-xs ${line.bold ? "font-bold" : ""}`}
+              className={`flex justify-between ${line.bold ? "font-bold" : ""}`}
             >
               <span>{line.title}</span>
               <span>
@@ -361,8 +392,8 @@ function CustomMessageBlock({ section }: { section: CustomMessageSection }) {
     <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
       <div>
         <div
-          className={`whitespace-pre-line leading-relaxed ${align} ${section.bold ? "font-bold" : ""}`}
-          style={{ fontSize: section.fontSize ?? 12 }}
+          className={`whitespace-pre-line ${align} ${section.bold ? "font-bold" : ""}`}
+          style={{ fontSize: section.fontSize ? `${section.fontSize}px` : undefined }}
         >
           {section.message}
         </div>
@@ -379,11 +410,11 @@ function ThreeColumnBlock({ section }: { section: ThreeColumnSection }) {
         {section.rows.map((row, i) => (
           <div
             key={i}
-            className={`flex text-xs ${section.bold ? "font-bold" : ""}`}
+            className={`flex ${section.bold ? "font-bold" : ""}`}
           >
             <span className={`flex-1 ${getAlignClass(section.leftAlignment)}`}>{row.left}</span>
             <span className={`w-8 ${getAlignClass(section.centerAlignment)}`}>{row.center}</span>
-            <span className={`w-20 ${getAlignClass(section.rightAlignment ?? "right")}`}>{row.right}</span>
+            <span className={`w-24 ${getAlignClass(section.rightAlignment ?? "right")}`}>{row.right}</span>
           </div>
         ))}
         <Divider config={section.divider} />
@@ -397,7 +428,7 @@ function FourColumnBlock({ section }: { section: FourColumnSection }) {
     <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
       <div>
         {section.rows.map((row, i) => (
-          <div key={i} className="flex text-xs">
+          <div key={i} className="flex">
             <span className="flex-1">{row.col1}</span>
             <span className="flex-1">{row.col2}</span>
             <span className="flex-1">{row.col3}</span>
@@ -417,7 +448,7 @@ function FiveColumnBlock({ section }: { section: FiveColumnSection }) {
         {section.rows.map((row, i) => {
           const vals = Object.values(row);
           return (
-            <div key={i} className="flex text-xs">
+            <div key={i} className="flex">
               {vals.map((v, j) => (
                 <span key={j} className={`flex-1 ${j === vals.length - 1 ? "text-right" : ""}`}>
                   {v}
@@ -437,42 +468,31 @@ function BarcodeBlock({ section }: { section: BarcodeSection }) {
     <SectionWrapper marginTop={section.marginTop}>
       <div className="text-center">
         <div
-          className="mx-auto font-mono text-xs tracking-widest"
+          className="mx-auto"
           style={{
-            height: section.height ?? 40,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            letterSpacing: "0.2em",
+            height: section.height ?? 50,
+            width: section.width ? `${section.width}%` : "80%",
+            background: `repeating-linear-gradient(
+              90deg,
+              #000 0px, #000 1.5px,
+              transparent 1.5px, transparent 3px,
+              #000 3px, #000 4px,
+              transparent 4px, transparent 5.5px,
+              #000 5.5px, #000 7px,
+              transparent 7px, transparent 9px
+            )`,
           }}
-        >
-          {/* Simple barcode visualization with CSS lines */}
+        />
+        {(section.displayValue || section.value) && (
           <div
-            className="w-full"
             style={{
-              height: section.height ?? 40,
-              background: `repeating-linear-gradient(
-                90deg,
-                #000 0px, #000 1px,
-                transparent 1px, transparent 2px,
-                #000 2px, #000 4px,
-                transparent 4px, transparent 5px,
-                #000 5px, #000 6px,
-                transparent 6px, transparent 8px
-              )`,
-            }}
-          />
-        </div>
-        {section.displayValue && (
-          <div
-            className="text-xs"
-            style={{
-              fontSize: section.textSize ?? 11,
-              marginTop: section.textMarginTop ?? 2,
-              letterSpacing: "0.15em",
+              fontSize: section.textSize ?? 12,
+              marginTop: section.textMarginTop ?? 4,
+              letterSpacing: "0.2em",
+              fontFamily: "'Courier New', Courier, monospace",
             }}
           >
-            {section.displayValue}
+            {section.displayValue || section.value}
           </div>
         )}
         <Divider config={section.divider} />
@@ -523,7 +543,7 @@ interface ReceiptRendererProps {
 export const ReceiptRenderer = forwardRef<HTMLDivElement, ReceiptRendererProps>(
   function ReceiptRenderer({ data }, ref) {
     const fontFamily = FONT_MAP[data.settings.font] ?? "'Courier New', Courier, monospace";
-    const fontSize = data.settings.fontSize ?? "12px";
+    const fontSize = data.settings.fontSize ?? "14px";
 
     return (
       <div
@@ -533,7 +553,7 @@ export const ReceiptRenderer = forwardRef<HTMLDivElement, ReceiptRendererProps>(
           width: "320px",
           fontFamily,
           fontSize,
-          lineHeight: "1.5",
+          lineHeight: "1.3",
           backgroundColor: "#FDFCF7",
           color: data.settings.textColor ?? "#111",
           padding: "24px 16px",
@@ -552,7 +572,7 @@ export const ReceiptRenderer = forwardRef<HTMLDivElement, ReceiptRendererProps>(
           }}
         />
 
-        <div className="space-y-1">
+        <div>
           {data.sections.map((section, i) => (
             <div key={section.id ?? i}>{renderSection(section, data.settings)}</div>
           ))}

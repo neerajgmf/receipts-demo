@@ -5,6 +5,7 @@ import { useDropzone } from "react-dropzone";
 import html2canvas from "html2canvas";
 import { useReceiptStore } from "@/store/receiptStore";
 import { ReceiptRenderer } from "@/components/ReceiptRenderer";
+import { JsonDebugPanel } from "@/components/JsonDebugPanel";
 
 const SUPPORTED_MEDIA_TYPES = new Set([
   "image/jpeg",
@@ -38,6 +39,7 @@ export default function Home() {
   } = useReceiptStore();
 
   const [editInstruction, setEditInstruction] = useState("");
+  const [showJson, setShowJson] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
 
   const onDrop = useCallback(
@@ -316,7 +318,18 @@ export default function Home() {
                   >
                     Download PNG
                   </button>
+                  <button
+                    onClick={() => setShowJson((v) => !v)}
+                    className="rounded-xl border border-zinc-700 bg-zinc-800 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                  >
+                    {showJson ? "Hide JSON" : "Show JSON"}
+                  </button>
                 </div>
+
+                {/* JSON Debug Panel */}
+                {showJson && receipt && (
+                  <JsonDebugPanel data={receipt} onUpdate={setReceipt} />
+                )}
               </>
             ) : (
               <div className="flex flex-1 flex-col items-center justify-center py-20 text-center">
