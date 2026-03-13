@@ -6,29 +6,23 @@ import type {
   ReceiptSection,
   ReceiptSettings,
   HeaderSection,
+  LogoSection,
+  BusinessInfoSection,
   StoreInfoSection,
   ItemsListSection,
   PaymentSection,
   CustomMessageSection,
+  ThreeColumnSection,
+  FourColumnSection,
+  FiveColumnSection,
+  BarcodeSection,
   DividerConfig,
 } from "@/types/receipt";
 
 const LUXURY_BRANDS = [
-  "DIOR",
-  "CHANEL",
-  "GUCCI",
-  "LOUIS VUITTON",
-  "HERMES",
-  "HERMÈS",
-  "PRADA",
-  "BURBERRY",
-  "VERSACE",
-  "BALENCIAGA",
-  "FENDI",
-  "GIVENCHY",
-  "CARTIER",
-  "TIFFANY",
-  "ROLEX",
+  "DIOR", "CHANEL", "GUCCI", "LOUIS VUITTON", "HERMES", "HERMÈS",
+  "PRADA", "BURBERRY", "VERSACE", "BALENCIAGA", "FENDI", "GIVENCHY",
+  "CARTIER", "TIFFANY", "ROLEX", "MCM", "CANADA GOOSE",
 ];
 
 function isLuxuryBrand(name: string): boolean {
@@ -36,11 +30,18 @@ function isLuxuryBrand(name: string): boolean {
   return LUXURY_BRANDS.some((b) => upper.includes(b));
 }
 
+function getAlignClass(alignment?: string) {
+  if (alignment === "right") return "text-right";
+  if (alignment === "left") return "text-left";
+  return "text-center";
+}
+
 function Divider({ config }: { config?: DividerConfig }) {
   if (!config?.enabled) return null;
 
   switch (config.style) {
     case "dashed":
+    case "---":
       return (
         <div
           className="my-1 border-t border-dashed border-gray-500"
@@ -55,16 +56,17 @@ function Divider({ config }: { config?: DividerConfig }) {
         />
       );
     case "double":
+    case "===":
       return (
         <div className="my-1">
-          <div
-            className="border-t border-solid"
-            style={{ borderColor: "#888" }}
-          />
-          <div
-            className="mt-px border-t border-solid"
-            style={{ borderColor: "#888" }}
-          />
+          <div className="border-t border-solid" style={{ borderColor: "#888" }} />
+          <div className="mt-px border-t border-solid" style={{ borderColor: "#888" }} />
+        </div>
+      );
+    case "***":
+      return (
+        <div className="my-1 text-center text-xs" style={{ color: "#888" }}>
+          {"*".repeat(40)}
         </div>
       );
     case "blank":
@@ -73,58 +75,148 @@ function Divider({ config }: { config?: DividerConfig }) {
   }
 }
 
+function SectionWrapper({
+  children,
+  marginTop,
+  lineHeight,
+}: {
+  children: React.ReactNode;
+  marginTop?: number;
+  lineHeight?: number;
+}) {
+  return (
+    <div
+      style={{
+        marginTop: marginTop !== undefined ? `${marginTop}px` : undefined,
+        lineHeight: lineHeight !== undefined ? lineHeight : undefined,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function HeaderBlock({ section }: { section: HeaderSection }) {
   const luxury = isLuxuryBrand(section.businessName);
-  const align =
-    section.alignment === "right"
-      ? "text-right"
-      : section.alignment === "left"
-        ? "text-left"
-        : "text-center";
+  const align = getAlignClass(section.alignment);
 
   return (
-    <div className={align}>
-      {section.logoUrl && (
-        <div className="flex justify-center mb-1">
+    <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
+      <div className={align}>
+        {section.showLogo !== false && section.logoUrl && (
+          <div
+            className="flex justify-center"
+            style={{
+              marginTop: section.logoMarginTop,
+              marginBottom: section.logoMarginBottom ?? 4,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={section.logoUrl}
+              alt="logo"
+              style={{ width: section.logoWidth ?? 80, objectFit: "contain" }}
+            />
+          </div>
+        )}
+        {section.businessName && (
+          <div
+            className={luxury ? "tracking-[0.3em] font-bold mb-1" : "font-bold mb-1"}
+            style={{
+              fontSize: section.businessNameSize ?? (luxury ? 18 : 14),
+              fontFamily: luxury ? "Georgia, 'Times New Roman', serif" : undefined,
+            }}
+          >
+            {section.businessName}
+          </div>
+        )}
+        {section.address && (
+          <div
+            className={`whitespace-pre-line ${getAlignClass(section.addressAlignment)}`}
+            style={{
+              fontSize: 12,
+              lineHeight: section.addressLineHeight ?? 1.1,
+            }}
+          >
+            {section.address}
+          </div>
+        )}
+        <Divider config={section.divider} />
+      </div>
+    </SectionWrapper>
+  );
+}
+
+function LogoBlock({ section }: { section: LogoSection }) {
+  if (!section.logoUrl) return null;
+  return (
+    <SectionWrapper>
+      <div className={getAlignClass(section.alignment)}>
+        <div
+          className="flex justify-center"
+          style={{
+            marginTop: section.logoMarginTop,
+            marginBottom: section.logoMarginBottom ?? 4,
+          }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={section.logoUrl}
             alt="logo"
-            className="h-8 object-contain"
+            style={{ width: section.logoWidth ?? 80, objectFit: "contain" }}
           />
         </div>
-      )}
-      <div
-        className={
-          luxury
-            ? "text-lg tracking-[0.3em] font-bold mb-1"
-            : "text-sm font-bold mb-1"
-        }
-        style={luxury ? { fontFamily: "Georgia, 'Times New Roman', serif" } : undefined}
-      >
-        {section.businessName}
+        <Divider config={section.divider} />
       </div>
-      {section.address && (
-        <div className="text-xs whitespace-pre-line leading-relaxed">
-          {section.address}
-        </div>
-      )}
-      <Divider config={section.divider} />
-    </div>
+    </SectionWrapper>
+  );
+}
+
+function BusinessInfoBlock({ section }: { section: BusinessInfoSection }) {
+  return (
+    <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
+      <div className={getAlignClass(section.alignment)}>
+        {section.businessName && (
+          <div
+            className={section.businessNameBold ? "font-bold" : ""}
+            style={{
+              fontSize: section.businessNameSize ?? 14,
+              lineHeight: section.businessNameLineHeight,
+            }}
+          >
+            {section.businessName}
+          </div>
+        )}
+        {section.address && (
+          <div
+            className="whitespace-pre-line"
+            style={{
+              fontSize: section.addressSize ?? 12,
+              lineHeight: section.addressLineHeight ?? 1.1,
+            }}
+          >
+            {section.address}
+          </div>
+        )}
+        <Divider config={section.divider} />
+      </div>
+    </SectionWrapper>
   );
 }
 
 function StoreInfoBlock({ section }: { section: StoreInfoSection }) {
   return (
-    <div>
-      {section.rows.map((row, i) => (
-        <div key={i} className="flex justify-between text-xs">
-          <span>{row.key}</span>
-          <span>{row.value}</span>
-        </div>
-      ))}
-      <Divider config={section.divider} />
-    </div>
+    <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
+      <div>
+        {section.rows.map((row, i) => (
+          <div key={i} className={`flex justify-between text-xs ${section.bold ? "font-bold" : ""}`}>
+            <span className={getAlignClass(section.keyAlignment)}>{row.key}</span>
+            <span className={getAlignClass(section.valueAlignment)}>{row.value}</span>
+          </div>
+        ))}
+        <Divider config={section.divider} />
+      </div>
+    </SectionWrapper>
   );
 }
 
@@ -135,25 +227,87 @@ function ItemsListBlock({
   section: ItemsListSection;
   settings: ReceiptSettings;
 }) {
+  const format = section.format ?? "2col";
+  const currPrefix = settings.currencyFormat !== "none" ? settings.currency : "";
+
   return (
-    <div>
-      {section.items.map((item, i) => (
-        <div
-          key={i}
-          className={`flex justify-between text-xs ${item.isSubItem ? "pl-4" : ""}`}
-        >
-          <span className="flex-1 mr-2">
-            {item.quantity && item.quantity > 1 && `${item.quantity}x `}
-            {item.name}
-          </span>
-          <span className="whitespace-nowrap">
-            {settings.currency}
-            {item.price}
-          </span>
-        </div>
-      ))}
-      <Divider config={section.divider} />
-    </div>
+    <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
+      <div>
+        <Divider config={section.divider} />
+
+        {section.showColumnHeaders && section.columnLabels && (
+          <div className={`flex justify-between text-xs ${section.headerBold ? "font-bold" : ""}`}>
+            <span className="flex-1">{section.columnLabels.name ?? "Item"}</span>
+            {(format === "3col" || format === "4col") && (
+              <span className="w-10 text-center">{section.columnLabels.quantity ?? "Qty"}</span>
+            )}
+            {format === "4col" && (
+              <span className="w-16 text-right">{section.columnLabels.unitPrice ?? "Price"}</span>
+            )}
+            <span className="w-16 text-right">{section.columnLabels.price ?? "Total"}</span>
+          </div>
+        )}
+
+        {section.items.map((item, i) => {
+          if (item.isDescription) {
+            return (
+              <div key={i} className="text-xs">
+                {item.name || "\u00A0"}
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={i}
+              className={`flex justify-between text-xs ${item.isSubItem ? "pl-4" : ""}`}
+            >
+              <span className="flex-1 mr-2">{item.name}</span>
+              {(format === "3col" || format === "4col") && (
+                <span className="w-10 text-center">{item.quantity ?? ""}</span>
+              )}
+              {format === "4col" && (
+                <span className="w-16 text-right">
+                  {item.unitPrice ? `${currPrefix}${item.unitPrice}` : ""}
+                </span>
+              )}
+              <span className="w-16 text-right whitespace-nowrap">
+                {item.price ? `${currPrefix}${item.price}` : ""}
+              </span>
+            </div>
+          );
+        })}
+
+        {section.showTotals && (
+          <>
+            {section.totalLinesDivider?.enabled && (
+              <Divider config={section.totalLinesDivider as DividerConfig} />
+            )}
+            {section.totalLines?.map((line, i) => (
+              <div key={i} className="flex justify-between text-xs">
+                <span>{line.title}</span>
+                <span>{line.value}</span>
+              </div>
+            ))}
+            {section.total && (
+              <div
+                className="flex justify-between text-xs font-bold"
+                style={
+                  section.increaseTotalSize?.enabled
+                    ? { fontSize: 16 }
+                    : undefined
+                }
+              >
+                <span>{section.total.title}</span>
+                <span>{section.total.value}</span>
+              </div>
+            )}
+          </>
+        )}
+
+        <Divider config={section.bottomDivider} />
+      </div>
+    </SectionWrapper>
   );
 }
 
@@ -164,43 +318,166 @@ function PaymentBlock({
   section: PaymentSection;
   settings: ReceiptSettings;
 }) {
+  const lines = section.method === "Cash"
+    ? (section.cashLines ?? section.customLines ?? [])
+    : (section.customLines ?? section.cardLines ?? []);
+
   return (
-    <div>
-      {section.customLines.map((line, i) => {
-        const isMoneyValue = /^\d/.test(line.value);
-        return (
-          <div
-            key={i}
-            className={`flex justify-between text-xs ${line.bold ? "font-bold" : ""}`}
-          >
-            <span>{line.title}</span>
-            <span>
-              {isMoneyValue ? settings.currency : ""}
-              {line.value}
-            </span>
+    <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
+      <div>
+        {section.cardDetails && (
+          <div className="text-xs">
+            <div className="flex justify-between">
+              <span>{section.cardDetails.cardType}</span>
+              <span>{section.cardDetails.cardNumber}</span>
+            </div>
           </div>
-        );
-      })}
-      <Divider config={section.divider} />
-    </div>
+        )}
+        {lines.map((line, i) => {
+          const isMoneyValue = /^\d/.test(line.value);
+          return (
+            <div
+              key={i}
+              className={`flex justify-between text-xs ${line.bold ? "font-bold" : ""}`}
+            >
+              <span>{line.title}</span>
+              <span>
+                {isMoneyValue && settings.currencyFormat !== "none" ? settings.currency : ""}
+                {line.value}
+              </span>
+            </div>
+          );
+        })}
+        <Divider config={section.divider} />
+      </div>
+    </SectionWrapper>
   );
 }
 
 function CustomMessageBlock({ section }: { section: CustomMessageSection }) {
-  const align =
-    section.alignment === "right"
-      ? "text-right"
-      : section.alignment === "left"
-        ? "text-left"
-        : "text-center";
+  const align = getAlignClass(section.alignment);
 
   return (
-    <div>
-      <div className={`text-xs whitespace-pre-line leading-relaxed ${align}`}>
-        {section.message}
+    <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
+      <div>
+        <div
+          className={`whitespace-pre-line leading-relaxed ${align} ${section.bold ? "font-bold" : ""}`}
+          style={{ fontSize: section.fontSize ?? 12 }}
+        >
+          {section.message}
+        </div>
+        <Divider config={section.divider} />
       </div>
-      <Divider config={section.divider} />
-    </div>
+    </SectionWrapper>
+  );
+}
+
+function ThreeColumnBlock({ section }: { section: ThreeColumnSection }) {
+  return (
+    <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
+      <div>
+        {section.rows.map((row, i) => (
+          <div
+            key={i}
+            className={`flex text-xs ${section.bold ? "font-bold" : ""}`}
+          >
+            <span className={`flex-1 ${getAlignClass(section.leftAlignment)}`}>{row.left}</span>
+            <span className={`w-8 ${getAlignClass(section.centerAlignment)}`}>{row.center}</span>
+            <span className={`w-20 ${getAlignClass(section.rightAlignment ?? "right")}`}>{row.right}</span>
+          </div>
+        ))}
+        <Divider config={section.divider} />
+      </div>
+    </SectionWrapper>
+  );
+}
+
+function FourColumnBlock({ section }: { section: FourColumnSection }) {
+  return (
+    <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
+      <div>
+        {section.rows.map((row, i) => (
+          <div key={i} className="flex text-xs">
+            <span className="flex-1">{row.col1}</span>
+            <span className="flex-1">{row.col2}</span>
+            <span className="flex-1">{row.col3}</span>
+            <span className="flex-1 text-right">{row.col4}</span>
+          </div>
+        ))}
+        <Divider config={section.divider} />
+      </div>
+    </SectionWrapper>
+  );
+}
+
+function FiveColumnBlock({ section }: { section: FiveColumnSection }) {
+  return (
+    <SectionWrapper marginTop={section.marginTop} lineHeight={section.lineHeight}>
+      <div>
+        {section.rows.map((row, i) => {
+          const vals = Object.values(row);
+          return (
+            <div key={i} className="flex text-xs">
+              {vals.map((v, j) => (
+                <span key={j} className={`flex-1 ${j === vals.length - 1 ? "text-right" : ""}`}>
+                  {v}
+                </span>
+              ))}
+            </div>
+          );
+        })}
+        <Divider config={section.divider} />
+      </div>
+    </SectionWrapper>
+  );
+}
+
+function BarcodeBlock({ section }: { section: BarcodeSection }) {
+  return (
+    <SectionWrapper marginTop={section.marginTop}>
+      <div className="text-center">
+        <div
+          className="mx-auto font-mono text-xs tracking-widest"
+          style={{
+            height: section.height ?? 40,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            letterSpacing: "0.2em",
+          }}
+        >
+          {/* Simple barcode visualization with CSS lines */}
+          <div
+            className="w-full"
+            style={{
+              height: section.height ?? 40,
+              background: `repeating-linear-gradient(
+                90deg,
+                #000 0px, #000 1px,
+                transparent 1px, transparent 2px,
+                #000 2px, #000 4px,
+                transparent 4px, transparent 5px,
+                #000 5px, #000 6px,
+                transparent 6px, transparent 8px
+              )`,
+            }}
+          />
+        </div>
+        {section.displayValue && (
+          <div
+            className="text-xs"
+            style={{
+              fontSize: section.textSize ?? 11,
+              marginTop: section.textMarginTop ?? 2,
+              letterSpacing: "0.15em",
+            }}
+          >
+            {section.displayValue}
+          </div>
+        )}
+        <Divider config={section.divider} />
+      </div>
+    </SectionWrapper>
   );
 }
 
@@ -208,6 +485,10 @@ function renderSection(section: ReceiptSection, settings: ReceiptSettings) {
   switch (section.type) {
     case "header":
       return <HeaderBlock section={section} />;
+    case "logo":
+      return <LogoBlock section={section} />;
+    case "business_info":
+      return <BusinessInfoBlock section={section} />;
     case "store_info":
       return <StoreInfoBlock section={section} />;
     case "items_list":
@@ -216,10 +497,24 @@ function renderSection(section: ReceiptSection, settings: ReceiptSettings) {
       return <PaymentBlock section={section} settings={settings} />;
     case "custom_message":
       return <CustomMessageBlock section={section} />;
+    case "three_column":
+      return <ThreeColumnBlock section={section} />;
+    case "four_column":
+      return <FourColumnBlock section={section} />;
+    case "five_column":
+      return <FiveColumnBlock section={section} />;
+    case "barcode":
+      return <BarcodeBlock section={section} />;
     default:
       return null;
   }
 }
+
+const FONT_MAP: Record<string, string> = {
+  merchantcopy: "'Courier New', Courier, monospace",
+  helvetica: "Helvetica, Arial, sans-serif",
+  bitmatrix: "'Courier New', Courier, monospace",
+};
 
 interface ReceiptRendererProps {
   data: ReceiptJSON;
@@ -227,17 +522,20 @@ interface ReceiptRendererProps {
 
 export const ReceiptRenderer = forwardRef<HTMLDivElement, ReceiptRendererProps>(
   function ReceiptRenderer({ data }, ref) {
+    const fontFamily = FONT_MAP[data.settings.font] ?? "'Courier New', Courier, monospace";
+    const fontSize = data.settings.fontSize ?? "12px";
+
     return (
       <div
         ref={ref}
         className="relative mx-auto"
         style={{
           width: "320px",
-          fontFamily: "'Courier New', Courier, monospace",
-          fontSize: "12px",
+          fontFamily,
+          fontSize,
           lineHeight: "1.5",
           backgroundColor: "#FDFCF7",
-          color: "#111",
+          color: data.settings.textColor ?? "#111",
           padding: "24px 16px",
           boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
         }}
@@ -256,7 +554,7 @@ export const ReceiptRenderer = forwardRef<HTMLDivElement, ReceiptRendererProps>(
 
         <div className="space-y-1">
           {data.sections.map((section, i) => (
-            <div key={i}>{renderSection(section, data.settings)}</div>
+            <div key={section.id ?? i}>{renderSection(section, data.settings)}</div>
           ))}
         </div>
 

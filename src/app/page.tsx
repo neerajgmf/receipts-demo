@@ -6,6 +6,20 @@ import html2canvas from "html2canvas";
 import { useReceiptStore } from "@/store/receiptStore";
 import { ReceiptRenderer } from "@/components/ReceiptRenderer";
 
+const SUPPORTED_MEDIA_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+]);
+
+function normalizeMediaType(fileType: string): string | null {
+  // Map common aliases
+  if (fileType === "image/jpg") return "image/jpeg";
+  if (SUPPORTED_MEDIA_TYPES.has(fileType)) return fileType;
+  return null;
+}
+
 export default function Home() {
   const {
     receipt,
@@ -40,7 +54,16 @@ export default function Home() {
       reader.onload = async () => {
         const dataUrl = reader.result as string;
         const base64 = dataUrl.split(",")[1];
-        const mediaType = file.type || "image/jpeg";
+        const rawType = file.type || "image/jpeg";
+        const mediaType = normalizeMediaType(rawType);
+
+        if (!mediaType) {
+          setError(
+            `Unsupported image format: ${rawType}. Please use JPEG, PNG, GIF, or WebP.`
+          );
+          setIsExtracting(false);
+          return;
+        }
 
         setIsExtracting(true);
         setError(null);
@@ -68,7 +91,7 @@ export default function Home() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".heic"] },
+    accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".gif"] },
     maxFiles: 1,
     maxSize: 5 * 1024 * 1024, // 5MB
   });
@@ -159,11 +182,10 @@ export default function Home() {
               </label>
               <div
                 {...getRootProps()}
-                className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors ${
-                  isDragActive
-                    ? "border-emerald-500 bg-emerald-500/10"
-                    : "border-zinc-700 bg-zinc-800/50 hover:border-zinc-500"
-                } ${isExtracting ? "pointer-events-none opacity-50" : ""}`}
+                className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors ${isDragActive
+                  ? "border-emerald-500 bg-emerald-500/10"
+                  : "border-zinc-700 bg-zinc-800/50 hover:border-zinc-500"
+                  } ${isExtracting ? "pointer-events-none opacity-50" : ""}`}
               >
                 <input {...getInputProps()} />
                 {uploadedImagePreview ? (
